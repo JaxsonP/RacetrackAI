@@ -1,8 +1,8 @@
 
-from turtle import back
 import pygame
 import random
 import math
+from PIL import Image, ImageDraw
 
 class Node:
 	def __init__(self, x, y):
@@ -31,17 +31,11 @@ class Link:
 	def toString (self):
 		return f"({self.x1}, {self.y1}) -> ({self.x2}, {self.y2})"
 
-def generateTrack (w, h):
+def generateTrack (w, h, scale):
 
-	track = []
-	link_history = []
 	links = []
 	iterations = 0
-	for y in range(h): # initializing links and track
-
-		track.append([])
-		for x in range(w):
-			track[y].append(0)
+	for y in range(h): # initializing links
 
 		for x in range(w - 1):
 			links.append(Link(x, y, x + 1, y))
@@ -76,7 +70,7 @@ def generateTrack (w, h):
 		ends = findEnds()
 
 		if iterations > 1000 and math.dist((ends[0].x, ends[0].y), (ends[1].x, ends[1].y)) <= 1:
-			print(f"\nends: {ends[0].toString()}, {ends[1].toString()}")
+			# print(f"\nends: {ends[0].toString()}, {ends[1].toString()}")
 			break
 		
 		# choosing an end node
@@ -140,22 +134,114 @@ def generateTrack (w, h):
 		links.append(Link(end_node.x, end_node.y, backbite_node.x, backbite_node.y))
 		iterations += 1
 
+	ends = findEnds()
 
-	return links
+	# converting into a node array
+	current_node = ends[1]
+	last_node = Node(-1, -1)
+	node_array = []
+
+	while True:
+
+		for link in links:
+			if link.contains(current_node) and not link.contains(last_node):
+
+				node_array.append(current_node)
+
+				last_node = current_node
+				if link.x1 == current_node.x and link.y1 == current_node.y:
+					current_node = Node(link.x2, link.y2)
+				else:
+					current_node = Node(link.x1, link.y1)
+				
+				break
+		if current_node.x == ends[0].x and current_node.y == ends[0].y:
+			node_array.append(ends[0])
+			node_array.append(ends[1])
+			break
+			
+	# converting into array of cardinal directions (vector arry)
+	vector_array = []
+	last_direction = None
+	for i in range(len(node_array) - 1):
+		direction = None
+		if node_array[i + 1].y < node_array[i].y: # north
+			direction = 0
+		elif node_array[i + 1].x > node_array[i].x: # east
+			direction = 1
+		elif node_array[i + 1].y > node_array[i].y: # south
+			direction = 2
+		elif node_array[i + 1].x < node_array[i].x: # west
+			direction = 3
+		else:
+			raise ValueError('Couldnt parse node array')
+		
+		vector_array.append((direction, last_direction))
+		last_direction = direction
+	vector_array[0] = (vector_array[0][0], vector_array[-1][0])
+
+
+	possible_start_nodes = []
+
+	# drawing the track
+	current_node = ends[1]
+	img = Image.new('1', (w * scale, h * scale))
+	draw = ImageDraw.Draw(img)
+	for segment in vector_array:
+
+		print(current_node.toString() + ": " + str(segment))
+		x = current_node.x
+		y = current_node.y
+
+		if (segment[0] == 0 or segment[0] == 2) and (segment[1] == 0 or segment[1] == 2): # |
+			draw.rectangle((x * scale + scale / 4, y * scale, x * scale + 3 * scale / 4, y * scale + scale), fill=1)
+			possible_start_nodes.append((Node(x, y), False))
+
+		elif (segment[0] == 1 or segment[0] == 3) and (segment[1] == 1 or segment[1] == 3): # --
+			draw.rectangle((x * scale, y * scale + scale / 4, x * scale + scale, y * scale + 3 * scale / 4), fill=1)
+			possible_start_nodes.append((Node(x, y), True))
+
+		elif (segment[0] == 0 and segment[1] == 3) or (segment[0] == 1 and segment[1] == 2): # L
+			draw.pieslice([x * scale + scale / 4, y * scale - 3 * scale / 4, x * scale + 7 * scale / 4, y * scale + 3 * scale / 4], 90, 180, fill=1)
+			draw.pieslice([x * scale + 3 * scale / 4, y * scale - scale / 4, x * scale + 5 * scale / 4, y * scale + scale / 4], 90, 180, fill=0)
+
+		elif (segment[0] == 1 and segment[1] == 0) or (segment[0] == 2 and segment[1] == 3): # upside down L
+			draw.pieslice([x * scale + scale / 4, y * scale + scale / 4, x * scale + 7 * scale / 4, y * scale + 7 * scale / 4], 180, 270, fill=1)
+			draw.pieslice([x * scale + 3 * scale / 4, y * scale + 3 * scale / 4, x * scale + 5 * scale / 4, y * scale + 5 * scale / 4], 180, 270, fill=0)
+
+
+		elif (segment[0] == 3 and segment[1] == 0) or (segment[0] == 2 and segment[1] == 1): # backwards upside down L
+			draw.pieslice([x * scale - 3 * scale / 4, y * scale + scale / 4, x * scale + 3 * scale / 4, y * scale + 7 * scale / 4], 270, 0, fill=1)
+			draw.pieslice([x * scale - scale / 4, y * scale +  + 3 * scale / 4, x * scale + scale / 4, y * scale + 5 * scale / 4], 270, 0, fill=0)
+
+
+		elif (segment[0] == 0 and segment[1] == 1) or (segment[0] == 3 and segment[1] == 2): # backwards L
+			draw.pieslice([x * scale - 3 * scale / 4, y * scale - 3 * scale / 4, x * scale + 3 * scale / 4, y * scale + 3 * scale / 4], 0, 90, fill=1)
+			draw.pieslice([x * scale - scale / 4, y * scale - scale / 4, x * scale + scale / 4, y * scale + scale / 4], 0, 90, fill=0)
+
+		if segment[0] == 0:
+			current_node.y -= 1
+		elif segment[0] == 1:
+			current_node.x += 1
+		if segment[0] == 2:
+			current_node.y += 1
+		elif segment[0] == 3:
+			current_node.x -= 1
+
+	return img, random.choice(possible_start_nodes)
 
 if __name__ == "__main__":
 	print("\n\n\n")
 
-	w = 10
-	h = 7
-	scale = 50
+	w = 6
+	h = 4
+	scale = 100
 
-	links = generateTrack(w, h)
+	track = generateTrack(w, h, scale)
+	track.save("track.jpg", format="JPEG")
+	print("done generating")
 	
-	#[print(row) for row in track]
-	#[print(f"({link.x1}, {link.y1}) -> ({link.x2}, {link.y2})") for link in links]
-	
-	pygame.init()
+	"""pygame.init()
 	screen = pygame.display.set_mode([w * scale, h * scale])
 	running = True
 
@@ -182,4 +268,4 @@ if __name__ == "__main__":
 		#pygame.quit()
 		pygame.display.flip()
 
-	pygame.quit()
+	pygame.quit()"""
