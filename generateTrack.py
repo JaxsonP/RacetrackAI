@@ -189,7 +189,6 @@ def generateTrack (w, h, scale):
 	draw = ImageDraw.Draw(img)
 	for segment in vector_array:
 
-		print(current_node.toString() + ": " + str(segment))
 		x = current_node.x
 		y = current_node.y
 
