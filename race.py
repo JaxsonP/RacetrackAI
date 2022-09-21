@@ -10,14 +10,14 @@ import math
 WIDTH = 6
 HEIGHT = 5
 SCALE = 100
-N_CARS = 1
+N_CARS = 10
 
 def main ():
 
   
 
   print("Generating track... ", end="")
-  track, start = generateTrack(WIDTH, HEIGHT, SCALE)
+  track, start, checkpoints = generateTrack(WIDTH, HEIGHT, SCALE)
   track.save("track.png", format="PNG")
   horizontal_start = start[1]
   start = start[0]
@@ -30,7 +30,7 @@ def main ():
   Car.track = track
   cars = []
   for i in range(N_CARS):
-    print("Initializing " + str(i) + " cars", end="\r")
+    print("Initializing " + str(i + 1) + " cars", end="\r")
     cars.append(Car(start.x * SCALE + SCALE / 2, start.y * SCALE + SCALE / 2, 0))
 
 
@@ -54,8 +54,11 @@ def main ():
 
     time.sleep(1/60)
 
+    all_dead = True
     for car in cars:
       car.update()
+      if car.dead == False:
+        all_dead = False
 
 
     # drawing

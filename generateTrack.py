@@ -227,7 +227,9 @@ def generateTrack (w, h, scale):
 		elif segment[0] == 3:
 			current_node.x -= 1
 
-	return img, random.choice(possible_start_nodes)
+	#print([node.toString() for node in node_array])
+	checkpoints = [(node.x * scale + scale / 2, node.y * scale + scale / 2) for node in node_array[:-1]]
+	return img, random.choice(possible_start_nodes), checkpoints
 
 if __name__ == "__main__":
 	print("\n\n\n")
@@ -236,8 +238,8 @@ if __name__ == "__main__":
 	h = 4
 	scale = 100
 
-	track = generateTrack(w, h, scale)
-	track.save("track.jpg", format="JPEG")
+	track, start, checkpoints = generateTrack(w, h, scale)
+	track.save("track.png", format="PNG")
 	print("done generating")
 	
 	"""pygame.init()

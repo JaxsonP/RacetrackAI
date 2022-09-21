@@ -1,7 +1,6 @@
 
-from cmath import cos
+from math import cos, sin, atan, sqrt, pi
 import pygame
-import math
 import random
 
 class CarInput:
@@ -12,8 +11,8 @@ class CarInput:
   
   def random ():
     new = CarInput()
-    new.steering = 0#Car.turn_speed#(random.random() * Car.turn_speed * 2) - Car.turn_speed
-    new.acceleration = 1#random.choice([-1, 0, 1])
+    new.steering = (random.random() * Car.turn_speed * 2) - Car.turn_speed
+    new.acceleration = random.choice([-1, 0, 1])
     return new
 
 
@@ -49,8 +48,8 @@ class Car:
     self.steer = 0
 
     if Car.car_radius == None:
-      Car.car_radius = math.sqrt(5) * Car.display_size / 2
-      Car.corner_angle = math.atan(0.5)
+      Car.car_radius = sqrt(5) * Car.display_size / 2
+      Car.corner_angle = atan(0.5)
     
     self.age = 0
     self.inputs = []
@@ -72,23 +71,23 @@ class Car:
 
     # applying car inputs
     if self.inputs[self.age].acceleration == 1:
-      self.vel_x += math.cos(self.rotation) * Car.acceleration_speed
-      self.vel_y += math.sin(self.rotation) * Car.acceleration_speed
+      self.vel_x += cos(self.rotation) * Car.acceleration_speed
+      self.vel_y += sin(self.rotation) * Car.acceleration_speed
     elif self.inputs[self.age].acceleration == -1:
-      self.vel_x -= math.cos(self.rotation) * Car.brake_speed
-      self.vel_y -= math.sin(self.rotation) * Car.brake_speed
+      self.vel_x -= cos(self.rotation) * Car.brake_speed
+      self.vel_y -= sin(self.rotation) * Car.brake_speed
     else:
       pass
     
     self.steer += self.inputs[self.age].steering
 
-    if Car.track.getpixel((self.x, self.y)) == 0:
-      #self.die()
+    if Car.track.getpixel((round(self.x), round(self.y))) == 0:
+      self.die()
       pass
 
     
     # limiting speed
-    vel_magnitude = math.sqrt(self.vel_x**2 + self.vel_y**2)
+    vel_magnitude = sqrt(self.vel_x**2 + self.vel_y**2)
     if vel_magnitude > Car.max_speed:
       self.vel_x = self.vel_x / vel_magnitude * Car.max_speed
       self.vel_y = self.vel_y / vel_magnitude * Car.max_speed
@@ -118,12 +117,12 @@ class Car:
     a = Car.corner_angle
     c = Car.car_radius
     r = self.rotation
-    pygame.draw.polygon(surface, Car.color, [(self.x+math.cos(r+a)*c, self.y+math.sin(r+a)*c), (self.x+math.cos(r+math.pi-a)*c, self.y+math.sin(r+math.pi-a)*c), (self.x+math.cos(r+math.pi+a)*c, self.y+math.sin(r+math.pi+a)*c), (self.x+math.cos(r-a)*c, self.y+math.sin(r-a)*c)], 0)
-    #pygame.draw.polygon(surface, Car.color, [(self.x+math.cos(r)*c, self.y+math.sin(r+a)*c), (self.x+math.cos(r+math.pi-a)*c, self.y+math.sin(r+math.pi-a)*c), (self.x+math.cos(r+math.pi+a)*c, self.y+math.sin(r+math.pi+a)*c), (self.x+math.cos(r-a)*c, self.y+math.sin(r-a)*c)], 0) 
+    pygame.draw.polygon(surface, Car.color, [(self.x+cos(r+a)*c, self.y+sin(r+a)*c), (self.x+cos(r+pi-a)*c, self.y+sin(r+pi-a)*c), (self.x+cos(r+pi+a)*c, self.y+sin(r+pi+a)*c), (self.x+cos(r-a)*c, self.y+sin(r-a)*c)], 0)
+    #pygame.draw.polygon(surface, Car.color, [(self.x+cos(r)*c, self.y+sin(r+a)*c), (self.x+cos(r+pi-a)*c, self.y+sin(r+pi-a)*c), (self.x+cos(r+pi+a)*c, self.y+sin(r+pi+a)*c), (self.x+cos(r-a)*c, self.y+sin(r-a)*c)], 0) 
   
 
   def die(self):
     self.dead = True
 
 
-#(self.x+math.cos(r+a)*c, self.y+math.sin(r+a)*c), 
+#(self.x+cos(r+a)*c, self.y+sin(r+a)*c), 
