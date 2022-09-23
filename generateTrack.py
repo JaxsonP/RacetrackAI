@@ -1,4 +1,5 @@
 
+from tkinter import Scale
 import pygame
 import random
 import math
@@ -194,11 +195,11 @@ def generateTrack (w, h, scale):
 
 		if (segment[0] == 0 or segment[0] == 2) and (segment[1] == 0 or segment[1] == 2): # |
 			draw.rectangle((x * scale + scale / 4, y * scale, x * scale + 3 * scale / 4, y * scale + scale), fill=1)
-			possible_start_nodes.append((Node(x, y), False))
+			possible_start_nodes.append((Node(x * scale + scale / 2, y * scale + scale / 2), False))
 
 		elif (segment[0] == 1 or segment[0] == 3) and (segment[1] == 1 or segment[1] == 3): # --
 			draw.rectangle((x * scale, y * scale + scale / 4, x * scale + scale, y * scale + 3 * scale / 4), fill=1)
-			possible_start_nodes.append((Node(x, y), True))
+			possible_start_nodes.append((Node(x * scale + scale / 2, y * scale + scale / 2), True))
 
 		elif (segment[0] == 0 and segment[1] == 3) or (segment[0] == 1 and segment[1] == 2): # L
 			draw.pieslice([x * scale + scale / 4, y * scale - 3 * scale / 4, x * scale + 7 * scale / 4, y * scale + 3 * scale / 4], 90, 180, fill=1)
@@ -227,9 +228,18 @@ def generateTrack (w, h, scale):
 		elif segment[0] == 3:
 			current_node.x -= 1
 
-	#print([node.toString() for node in node_array])
-	checkpoints = [(node.x * scale + scale / 2, node.y * scale + scale / 2) for node in node_array[:-1]]
-	return img, random.choice(possible_start_nodes), checkpoints
+	checkpoints = [Node(node.x * scale + scale / 2, node.y * scale + scale / 2) for node in node_array[:-1]]
+	
+	# parsing start loc
+	direction = 0
+	if checkpoints[0].x < checkpoints[1].x:
+		direction = 1
+	elif checkpoints[0].y > checkpoints[1].y:
+		direction = 2
+	elif checkpoints[0].x > checkpoints[1].x:
+		direction = 3
+	
+	return img, (checkpoints[0], direction), checkpoints
 
 if __name__ == "__main__":
 	print("\n\n\n")
